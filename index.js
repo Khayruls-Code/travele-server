@@ -21,11 +21,11 @@ async function run() {
     const blogCollection = database.collection('blogs')
     const usersCollection = database.collection('users')
 
-    app.get('/blogs', async (req, res) => {
-      const cursor = blogCollection.find({})
-      const result = await cursor.toArray()
-      res.json(result)
-    })
+    // app.get('/blogs', async (req, res) => {
+    //   const cursor = blogCollection.find({})
+    //   const result = await cursor.toArray()
+    //   res.json(result)
+    // })
     app.get('/blogs/:id', async (req, res) => {
       const id = req.params.id
       const query = { '_id': ObjectId(id) }
@@ -56,34 +56,35 @@ async function run() {
     })
 
     app.get('/blogs', async (req, res) => {
+      const email = req.query.email
       const status = req.query.status
-      console.log(req.query)
-      console.log("searching query")
-      console.log(email)
-      const query = { status: status }
+      const query = { email: email }
+      const query2 = { status: status }
       let cursor;
       if (email) {
         cursor = blogCollection.find(query)
+      } else if (status) {
+        cursor = blogCollection.find(query2)
       }
       else {
         cursor = blogCollection.find({})
       }
       const result = await cursor.toArray()
-      res.json(result)
+      res.send(result)
     })
 
-    app.get('/blogs', async (req, res) => {
-      const email = req.query.email
-      console.log(email)
-      const query = { email: email }
-      let cursor;
-      if (email) {
-        cursor = blogCollection.find(query)
+    //status update
+    app.put('/blogs/:id', async (req, res) => {
+      const id = req.params.id
+      const status = req.body.status
+      const filter = { '_id': ObjectId(id) }
+      const options = { upsert: true };
+      const updateDoc = {
+        $set: {
+          status: status
+        }
       }
-      else {
-        cursor = blogCollection.find({})
-      }
-      const result = await cursor.toArray()
+      const result = await blogCollection.updateOne(filter, updateDoc, options)
       res.json(result)
     })
 
